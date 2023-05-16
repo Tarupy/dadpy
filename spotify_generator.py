@@ -71,14 +71,30 @@ if __name__ == "__main__":
     N = args.number if args.number else 1
     file = open(args.output, "a") if args.output else sys.stdout
 
-    for i in range(N):
+    print("Generating accounts in the following format:", file=sys.stdout)
+    print("NICKNAME:USERNAME:EMAIL:PASSWORD\n", file=sys.stdout)
+
+    # Read existing accounts from the output file, if provided
+    existing_accounts = set()
+    if args.output:
+        with open(args.output, "r") as f:
+            for line in f:
+                parts = line.strip().split(":")
+                if len(parts) >= 2:
+                    existing_accounts.add(parts[1])
+
+    generated_accounts = 0
+    while generated_accounts < N:
         result = generate(args.email_file)
         if result[0]:
-            print(result[1], file=file)
-            if file is not sys.stdout:
-                print(result[1], file=sys.stdout)
+            _, username, _, _ = result[1].split(":")
+            if username not in existing_accounts:
+                print(result[1], file=file)
+                if file is not sys.stdout:
+                    print(result[1], file=sys.stdout)
+                generated_accounts += 1
         else:
-            print(str(i+1)+"/"+str(N)+": "+result[1], file=sys.stdout)
+            print(str(generated_accounts + 1) + "/" + str(N) + ": " + result[1], file=sys.stdout)
 
     if file is not sys.stdout:
         file.close()
